@@ -16,15 +16,26 @@
  )
 
 ;; ========== Includes
-(progn ;; прописываем пути к плагинам
+(defun include-from(dir) ;; прописываем пути к плагинам
   (set 'includes ;; список плагинов
-    (directory-files (expand-file-name "~/.emacs.d/git/") nil "^\\([^.]\\|\\.[^.]\\|\\.\\..\\)"))
+    (directory-files (expand-file-name dir) nil "^\\([^.]\\|\\.[^.]\\|\\.\\..\\)"))
   (while includes
-    (add-to-list 'load-path (concat "~/.emacs.d/git/" (car includes)))
+    (add-to-list 'load-path (concat dir (car includes)))
     (set 'includes (cdr includes)))
 )
 
+(include-from "~/.emacs.d/git/")
+(include-from "~/.emacs.d/elpa/")
+
 ;; ========== Общие нестройки
+(setq package-archives '( ;; подключаем репозитории
+                         ("elpy" . "http://jorgenschaefer.github.io/packages/")
+                         ("gnu" . "http://elpa.gnu.org/packages/")
+                         ("melpa" . "http://melpa.milkbox.net/packages/")
+                         ;;("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")
+                         ("org" . "http://orgmode.org/elpa/")
+                         ))
+
 (server-start) ;; запуск в режиме сервера
 (cua-mode t) ;; работа с буфером обмена по человечески
 (defalias 'yes-or-no-p 'y-or-n-p) ;; укорачиваем вопросы
@@ -106,12 +117,29 @@
 ;; ========== D-MODE
 (require 'd-mode)
 (add-to-list 'auto-mode-alist '("\\.d\\'" . d-mode))
-;; ========== LISP-MODE
-(setq auto-mode-alist
-      (append
-       '(
-         ( "\\.el$". lisp-mode))))
-(global-font-lock-mode 1)
+
+;; ========== ac-dcd
+(require 'ac-dcd)
+    (add-hook 'd-mode-hook
+      (lambda ()
+          (auto-complete-mode t)
+          (when (featurep 'yasnippet) (yas-minor-mode-on))
+          (ac-dcd-maybe-start-server)
+          (ac-dcd-add-imports)
+          (ac-dcd--find-all-project-imports)
+          (add-to-list 'ac-sources 'ac-source-dcd)
+          (define-key d-mode-map (kbd "C-c ?") 'ac-dcd-show-ddoc-with-buffer)
+          (define-key d-mode-map (kbd "C-c .") 'ac-dcd-goto-definition)
+          (define-key d-mode-map (kbd "C-c ,") 'ac-dcd-goto-def-pop-marker)
+          (define-key d-mode-map (kbd "C-c s") 'ac-dcd-search-symbol)
+
+          (when (featurep 'popwin)
+            (add-to-list 'popwin:special-display-config
+                         `(,ac-dcd-error-buffer-name :noselect t))
+            (add-to-list 'popwin:special-display-config
+                         `(,ac-dcd-document-buffer-name :position right :width 80))
+            (add-to-list 'popwin:special-display-config
+                         `(,ac-dcd-search-symbol-buffer-name :position bottom :width 5)))))
 
 ;; ========== Отступы
 (setq-default indent-tabs-mode nil) ; не использовать символ Tab для отсутпа
