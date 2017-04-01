@@ -105,10 +105,33 @@
 
 ;; ========== D-MODE
 (require 'd-mode)
-
+(add-to-list 'auto-mode-alist '("\\.d\\'" . d-mode))
 ;; ========== LISP-MODE
 (setq auto-mode-alist
       (append
        '(
          ( "\\.el$". lisp-mode))))
 (global-font-lock-mode 1)
+
+;; ========== Отступы
+(setq-default indent-tabs-mode nil) ; не использовать символ Tab для отсутпа
+
+(setq tab-width 4 ; ширина таба
+      c-default-style "stroustrup" ; отступ в CC mode
+      js-indent-level 4 ; indentation level in JS mode
+      css-indent-offset 4) ; indentation level in CSS mode
+
+(add-hook 'd-mode-hook
+          (lambda ()
+            (setq tab-wdth 4)
+            ))
+
+(add-hook 'text-mode-hook
+          (lambda ()
+            (setq tab-wdth 4)
+            ))
+
+;; indent
+(global-set-key (kbd "TAB") 'self-insert-command)
+(setq-default c-basic-offset 4) 
+(setq-default tab-width 4)
