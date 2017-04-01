@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "flycheck-dmd-dub" "flycheck-dmd-dub.el" (22751
-;;;;;;  33223 960579 405000))
+;;;;;;  45305 101427 985000))
 ;;; Generated autoloads from flycheck-dmd-dub.el
 
 (defvar flycheck-dmd-dub-use-cache-p nil "\

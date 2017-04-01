@@ -1,5 +1,60 @@
 
-;; ========== Цветовая тема
+;; ========== Автоустановка пакетов
+(require 'cl) ;; ???
+(require 'package) ;; ???
+
+(defvar cfg-var:packages '(
+    d-mode ;; подсветка Dlang
+	ac-dcd ;; автодополнение Dlang
+    nav    ;; навигация по файловой системе
+    auto-complete ;; общее автодополнение
+    flycheck ;; проверка синтаксиса
+    autopair ;; авто скобки
+    ))
+
+(defun cfg:install-packages ()
+    (let ((pkgs (remove-if #'package-installed-p cfg-var:packages)))
+        (when pkgs
+            (message "%s" "Emacs refresh packages database...")
+            (package-refresh-contents)
+            (message "%s" " done.")
+            (dolist (p cfg-var:packages)
+                (package-install p)))))
+
+(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/") t)
+(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
+(add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+(package-initialize)
+(cfg:install-packages)
+
+;; ========== Хоткеи на русской раскладке
+    ;; должна быть еще строчка в конце файла
+(defun cfg:reverse-input-method (input-method)
+  "Build the reverse mapping of single letters from INPUT-METHOD."
+  (interactive
+   (list (read-input-method-name "Use input method (default current): ")))
+  (if (and input-method (symbolp input-method))
+      (setq input-method (symbol-name input-method)))
+  (let ((current current-input-method)
+        (modifiers '(nil (control) (meta) (control meta))))
+    (when input-method
+      (activate-input-method input-method))
+    (when (and current-input-method quail-keyboard-layout)
+      (dolist (map (cdr (quail-map)))
+        (let* ((to (car map))
+               (from (quail-get-translation
+                      (cadr map) (char-to-string to) 1)))
+          (when (and (characterp from) (characterp to))
+            (dolist (mod modifiers)
+              (define-key local-function-key-map
+                (vector (append mod (list from)))
+                (vector (append mod (list to)))))))))
+    (when input-method
+      (activate-input-method current))))
+
+
+;; ========== Цветовая схема
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -15,27 +70,7 @@
  ;; If there is more than one, they won't work right.
  )
 
-;; ========== Includes
-(defun include-from(dir) ;; прописываем пути к плагинам
-  (set 'includes ;; список плагинов
-    (directory-files (expand-file-name dir) nil "^\\([^.]\\|\\.[^.]\\|\\.\\..\\)"))
-  (while includes
-    (add-to-list 'load-path (concat dir (car includes)))
-    (set 'includes (cdr includes)))
-)
-
-(include-from "~/.emacs.d/git/")
-(include-from "~/.emacs.d/elpa/")
-
-;; ========== Общие нестройки
-(setq package-archives '( ;; подключаем репозитории
-                         ("elpy" . "http://jorgenschaefer.github.io/packages/")
-                         ("gnu" . "http://elpa.gnu.org/packages/")
-                         ("melpa" . "http://melpa.milkbox.net/packages/")
-                         ;;("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")
-                         ("org" . "http://orgmode.org/elpa/")
-                         ))
-
+ ;; ========== Общие нестройки
 (server-start) ;; запуск в режиме сервера
 (cua-mode t) ;; работа с буфером обмена по человечески
 (defalias 'yes-or-no-p 'y-or-n-p) ;; укорачиваем вопросы
@@ -101,8 +136,6 @@
 
 ;; запилить закладки
 
-;; ==================== Plugins from ~/.emacs.d/git/ ====================
-
 ;; ========== NAV
 (require 'nav)
 (nav-disable-overeager-window-splitting)
@@ -113,6 +146,10 @@
   (local-set-key (kbd "<left>")  'nav-go-up-one-dir))
 
 (add-hook 'nav-mode-hook 'nav-mode-hl-hook)
+
+;; ========== autopair-mode
+(require 'autopair) ;; автовставка скобок
+(autopair-mode t)
 
 ;; ========== D-MODE
 (require 'd-mode)
@@ -126,6 +163,7 @@
           (when (featurep 'yasnippet) (yas-minor-mode-on))
           (ac-dcd-maybe-start-server)
           (ac-dcd-add-imports)
+          (autopair-mode t)
           (ac-dcd--find-all-project-imports)
           (add-to-list 'ac-sources 'ac-source-dcd)
           (define-key d-mode-map (kbd "C-c ?") 'ac-dcd-show-ddoc-with-buffer)
@@ -159,7 +197,10 @@
             (setq tab-wdth 4)
             ))
 
-;; indent
-(global-set-key (kbd "TAB") 'self-insert-command)
+(global-set-key (kbd "TAB") 'self-insert-command) ;; indent
 (setq-default c-basic-offset 4) 
 (setq-default tab-width 4)
+
+;; ========== Хоткеи на русской раскладке
+;; А вот эта строка должна быть в самом конце
+(cfg:reverse-input-method 'russian-computer)
