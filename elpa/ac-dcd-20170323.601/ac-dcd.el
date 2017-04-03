@@ -247,6 +247,7 @@ TODO: multi byte character support"
 ;; Interface functions to communicate with auto-complete.el.
 (defun ac-dcd-get-candidates ()
   "Get ordinary auto-complete candidates."
+  (shell-command "beep")
   (unless (ac-in-string/comment)
     (save-restriction
       (widen)

@@ -1,7 +1,25 @@
 
+
+;; ========== Цветовая схема
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default default default italic underline success warning error])
+ '(custom-enabled-themes (quote (wombat))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+
 ;; ========== Автоустановка пакетов
-(require 'cl) ;; ???
-(require 'package) ;; ???
+(require 'cl) ;; common lisp
+(require 'package) ;; пакетный менеджер
 
 (defvar cfg-var:packages '(
     d-mode ;; подсветка Dlang
@@ -52,23 +70,6 @@
                 (vector (append mod (list to)))))))))
     (when input-method
       (activate-input-method current))))
-
-
-;; ========== Цветовая схема
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default default default italic underline success warning error])
- '(custom-enabled-themes (quote (wombat))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 
  ;; ========== Общие нестройки
 (server-start) ;; запуск в режиме сервера
@@ -155,29 +156,51 @@
 (require 'd-mode)
 (add-to-list 'auto-mode-alist '("\\.d\\'" . d-mode))
 
+(defun rdmd() ;; запуск rdmd для текущего файла
+  "Run rdmd for current file.d"
+  (interactive)
+  (setq rdmd-cmd (concat "rdmd " buffer-file-name))
+  (save-buffer)
+  (async-shell-command rdmd-cmd)
+  )
+
+(defun dub() ;; запуск dub для текущего проекта
+  "Run dub for current project" ;; от ткущего файла спускается в низ по директориям 
+  (interactive)                 ;; пока не найдёт dub.json,
+  (save-buffer)                 ;; но не дальше 6ти директорий
+  (setq str "./")
+  (while (eq (file-exists-p (concat str "dub.json")) (eq str "./../../../../../../"))
+    (setq str(concat str "../")))
+  (setq str (concat "cd " str " && dub"))
+  (async-shell-command str)
+)
+
+(define-key d-mode-map (kbd "<f6>") 'rdmd) ;; привязка клавиш к функциям
+(define-key d-mode-map (kbd "<f5>") 'dub)  ;; rdmd и dub
+
 ;; ========== ac-dcd
 (require 'ac-dcd)
-    (add-hook 'd-mode-hook
-      (lambda ()
-          (auto-complete-mode t)
-          (when (featurep 'yasnippet) (yas-minor-mode-on))
-          (ac-dcd-maybe-start-server)
-          (ac-dcd-add-imports)
-          (autopair-mode t)
-          (ac-dcd--find-all-project-imports)
-          (add-to-list 'ac-sources 'ac-source-dcd)
-          (define-key d-mode-map (kbd "C-c ?") 'ac-dcd-show-ddoc-with-buffer)
-          (define-key d-mode-map (kbd "C-c .") 'ac-dcd-goto-definition)
-          (define-key d-mode-map (kbd "C-c ,") 'ac-dcd-goto-def-pop-marker)
-          (define-key d-mode-map (kbd "C-c s") 'ac-dcd-search-symbol)
+(add-hook 'd-mode-hook
+  (lambda ()
+      (auto-complete-mode t)
+      (when (featurep 'yasnippet) (yas-minor-mode-on))
+      (ac-dcd-maybe-start-server)
+      (ac-dcd-add-imports)
+      (autopair-mode t)
+      (ac-dcd--find-all-project-imports)
+      (add-to-list 'ac-sources 'ac-source-dcd)
+      (define-key d-mode-map (kbd "C-c ?") 'ac-dcd-show-ddoc-with-buffer)
+      (define-key d-mode-map (kbd "C-c .") 'ac-dcd-goto-definition)
+      (define-key d-mode-map (kbd "C-c ,") 'ac-dcd-goto-def-pop-marker)
+      (define-key d-mode-map (kbd "C-c s") 'ac-dcd-search-symbol)          
 
-          (when (featurep 'popwin)
-            (add-to-list 'popwin:special-display-config
-                         `(,ac-dcd-error-buffer-name :noselect t))
-            (add-to-list 'popwin:special-display-config
-                         `(,ac-dcd-document-buffer-name :position right :width 80))
-            (add-to-list 'popwin:special-display-config
-                         `(,ac-dcd-search-symbol-buffer-name :position bottom :width 5)))))
+      (when (featurep 'popwin)
+          (add-to-list 'popwin:special-display-config
+                     `(,ac-dcd-error-buffer-name :noselect t))
+          (add-to-list 'popwin:special-display-config
+                     `(,ac-dcd-document-buffer-name :position right :width 80))
+          (add-to-list 'popwin:special-display-config
+                     `(,ac-dcd-search-symbol-buffer-name :position bottom :width 5)))))
 
 ;; ========== Отступы
 (setq-default indent-tabs-mode nil) ; не использовать символ Tab для отсутпа
@@ -204,3 +227,14 @@
 ;; ========== Хоткеи на русской раскладке
 ;; А вот эта строка должна быть в самом конце
 (cfg:reverse-input-method 'russian-computer)
+
+
+;; ========== Test
+
+
+
+;(defun lll()
+;	((lambda()
+;  	(insert "LAMBDA")
+;  	))
+;    )
