@@ -178,6 +178,12 @@
 (define-key d-mode-map (kbd "<f6>") 'rdmd) ;; привязка клавиш к функциям
 (define-key d-mode-map (kbd "<f5>") 'dub)  ;; rdmd и dub
 
+;; отключаем вопросы при выходе по поводу запущенного dcd-server
+(defadvice save-buffers-kill-emacs (around no-query-kill-emacs activate)
+  "Prevent annoying \"Active processes exist\" query when you quit Emacs."
+  (cl-letf (((symbol-function #'process-list) (lambda ())))
+    ad-do-it))
+
 ;; ========== ac-dcd
 (require 'ac-dcd)
 (add-hook 'd-mode-hook
@@ -193,7 +199,7 @@
       (define-key d-mode-map (kbd "C-c .") 'ac-dcd-goto-definition)
       (define-key d-mode-map (kbd "C-c ,") 'ac-dcd-goto-def-pop-marker)
       (define-key d-mode-map (kbd "C-c s") 'ac-dcd-search-symbol)          
-
+	  
       (when (featurep 'popwin)
           (add-to-list 'popwin:special-display-config
                      `(,ac-dcd-error-buffer-name :noselect t))
@@ -227,14 +233,3 @@
 ;; ========== Хоткеи на русской раскладке
 ;; А вот эта строка должна быть в самом конце
 (cfg:reverse-input-method 'russian-computer)
-
-
-;; ========== Test
-
-
-
-;(defun lll()
-;	((lambda()
-;  	(insert "LAMBDA")
-;  	))
-;    )
