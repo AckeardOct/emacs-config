@@ -135,6 +135,8 @@
 (setq search-highlight t) ;; Выделять результаты поиска
 (setq query-replace-highlight t)
 
+(global-set-key (kbd "<C-Tab>") 'other-window) ;; переключение окон
+
 ;; запилить закладки
 
 ;; ========== NAV
@@ -157,9 +159,10 @@
 (add-to-list 'auto-mode-alist '("\\.d\\'" . d-mode))
 
 (defun rdmd() ;; запуск rdmd для текущего файла
-  "Run rdmd for current file.d"
+  "Run rdmd for current file.d with unittests"
   (interactive)
-  (setq rdmd-cmd (concat "rdmd " buffer-file-name))
+  
+  (setq rdmd-cmd (concat "rdmd -unittest " buffer-file-name))
   (save-buffer)
   (async-shell-command rdmd-cmd)
   )
