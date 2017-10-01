@@ -1,9 +1,9 @@
 ;;; ac-dcd-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ac-dcd" "ac-dcd.el" (22751 45305 881451 941000))
+;;;### (autoloads nil "ac-dcd" "ac-dcd.el" (22789 55349 580791 385000))
 ;;; Generated autoloads from ac-dcd.el
 
 (autoload 'ac-dcd-setup "ac-dcd" "\
